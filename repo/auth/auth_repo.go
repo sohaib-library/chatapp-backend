@@ -1,8 +1,11 @@
 package auth
 
-import "context"
+import (
+	"chatapp-backend/models"
+	"context"
+)
 
 type AuthRepo interface {
-	CreateUser(ctx context.Context, name, email, password string) error
-	UserExists(ctx context.Context, name, email string) (bool, error)
+	CreateUser(ctx context.Context, user models.Users) error
+	UserExists(ctx context.Context, email string) (bool, error)
 }

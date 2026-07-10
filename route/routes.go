@@ -11,9 +11,19 @@ import (
 )
 
 func RegisterRoute(router *gin.Engine, db *sql.DB) {
+
+	// Pipeline
+	// Auth_Signup
 	authRepo := auth_repo.NewAuthImpl(db)
 	authSvc := auth_service.NewAuth(authRepo)
 	h := auth_handler.NewHandler(authSvc)
 
+
+   // Routes
+
+	// Auth
 	router.POST("/signup", h.SignUP)
+
+
+
 }
