@@ -34,5 +34,15 @@ func (h *Handler) Login(ctx *gin.Context) {
 		return
 	}
 
+	token, err := h.Authuser.Login(ctx.Request.Context(), login)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		log.Print(err.Error())
+		return
+	}
 
+	ctx.JSON(http.StatusOK, gin.H{
+		"Success": "Login Successfully",
+		"Token":   token,
+	})
 }

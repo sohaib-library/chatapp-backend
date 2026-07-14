@@ -23,6 +23,7 @@ func RegisterRoute(router *gin.Engine, db *sql.DB) {
 
 	// Auth
 	router.POST("/signup", h.SignUP)
+	router.POST("/login", h.Login)
 
 
 

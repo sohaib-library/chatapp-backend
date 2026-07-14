@@ -6,5 +6,6 @@ import (
 
 type AuthHandler interface {
 	SignUp(ctx *gin.Context)
+	Login(ctx *gin.Context)
 
 }

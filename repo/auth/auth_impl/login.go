@@ -1,35 +1,39 @@
 package auth_impl
 
 import (
-	"chatapp-backend/database"
+	apperror "chatapp-backend/error"
 	"chatapp-backend/models"
+	"context"
+	"database/sql"
+	"errors"
+	"fmt"
 )
- 
-func (a *AuthImpl) Login(login models.Login) (*models.Users, error) {
-	// var user int64
 
-	row := database.DB.QueryRow(`
-	
-		SELECT id , 
-		name , 
-		email , 
+func (r *AuthImpl) Login(ctx context.Context, email string) (*models.Users, error) {
+
+	var user models.Users
+
+	err := r.db.QueryRowContext(ctx, `
+
+		SELECT id,
+		name,
+		email,
 		password
-		FROM users 
-		WHERE email = $1 
-	`, login.Email)
-
-	var Resp models.Users
-
-	err := row.Scan(
-		&Resp.Id,
-		&Resp.Name,
-		&Resp.Email,
-		&Resp.Password,
+		FROM users
+		WHERE email = $1
+	`, email).Scan(
+		&user.Id,
+		&user.Name,
+		&user.Email,
+		&user.Password,
 	)
 
 	if err != nil {
-		return nil, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, apperror.ErrInvalidCredentials
+		}
+		return nil, fmt.Errorf("get user by email: %w", err)
 	}
 
-	return &Resp, err
+	return &user, nil
 }
