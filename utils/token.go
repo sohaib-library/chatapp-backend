@@ -30,3 +30,32 @@ func GenerateToken(userID, email string) (string, error) {
 
 	return signed, nil
 }
+
+func ValidateToken(tokenString string) (string, error) {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		return "", fmt.Errorf("JWT_SECRET is not set")
+	}
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if token.Method != jwt.SigningMethodHS256 {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(secret), nil
+	})
+	if err != nil {
+		return "", fmt.Errorf("invalid token: %w", err)
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || !token.Valid {
+		return "", fmt.Errorf("invalid token claims")
+	}
+
+	userID, ok := claims["sub"].(string)
+	if !ok || userID == "" {
+		return "", fmt.Errorf("missing user id in token")
+	}
+
+	return userID, nil
+}
