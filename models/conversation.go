@@ -3,11 +3,12 @@ package models
 import "time"
 
 type Conversation struct {
-	ID        string    `json:"id"`
-	Type      string    `json:"type"`
-	Name      string    `json:"name,omitempty"`
-	CreatedAt time.Time `json:"created_at"`
-	OtherUser *UserInfo `json:"other_user,omitempty"`
+	ID        string     `json:"id"`
+	Type      string     `json:"type"`
+	Name      string     `json:"name,omitempty"`
+	CreatedAt time.Time  `json:"created_at"`
+	OtherUser *UserInfo  `json:"other_user,omitempty"`
+	Members   []UserInfo `json:"members,omitempty"`
 }
 
 type UserInfo struct {
@@ -26,6 +27,11 @@ type Message struct {
 
 type CreateDMRequest struct {
 	UserID string `json:"user_id"`
+}
+
+type CreateGroupRequest struct {
+	Name      string   `json:"name"`
+	MemberIDs []string `json:"member_ids"`
 }
 
 type SendMessageRequest struct {

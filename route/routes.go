@@ -56,7 +56,17 @@ func RegisterRoute(router *gin.Engine, db *sql.DB) {
 
 		protected.POST("/dms", conversationHandler.StartDM)
 		protected.GET("/dms", conversationHandler.ListDMs)
+
+
+
+		protected.POST("/groups", conversationHandler.CreateGroup)
+		protected.GET("/groups", conversationHandler.ListGroups)
+
+		// Messages work for both DMs and groups (same conversation + membership check)
+		
 		protected.POST("/dms/:id/messages", conversationHandler.SendMessage)
 		protected.GET("/dms/:id/messages", conversationHandler.ListMessages)
+		protected.POST("/groups/:id/messages", conversationHandler.SendMessage)
+		protected.GET("/groups/:id/messages", conversationHandler.ListMessages)
 	}
 }

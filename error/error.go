@@ -13,4 +13,6 @@ var (
 	ErrNotConversationMember = errors.New("you are not a member of this conversation")
 	ErrInvalidMessage       = errors.New("message content is required")
 	ErrCannotDMYourself     = errors.New("cannot start a dm with yourself")
+	ErrInvalidGroupName     = errors.New("group name is required")
+	ErrInvalidGroupMembers  = errors.New("group must include at least one other member")
 )
