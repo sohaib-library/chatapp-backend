@@ -4,7 +4,7 @@ import "errors"
 
 
 var (
-	ErrInvalidRequest       = errors.New("invalid signup request")
+	ErrInvalidRequest       = errors.New("all fields are required")
 	ErrInvalidEmail         = errors.New("enter valid email")
 	ErrUserExists           = errors.New("user already exists")
 	ErrInvalidCredentials   = errors.New("invalid email or password")

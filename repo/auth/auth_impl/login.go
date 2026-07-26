@@ -30,7 +30,7 @@ func (r *AuthImpl) Login(ctx context.Context, email string) (*models.Users, erro
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, apperror.ErrInvalidCredentials
+			return nil, apperror.ErrUserNotFound
 		}
 		return nil, fmt.Errorf("get user by email: %w", err)
 	}

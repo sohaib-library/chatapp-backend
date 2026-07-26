@@ -10,8 +10,6 @@ import (
 	_ "github.com/lib/pq"
 )
 
-var DB *sql.DB
-
 func Database(envpath string) *sql.DB {
 
 	if err := godotenv.Load(envpath); err != nil {
@@ -31,19 +29,18 @@ func Database(envpath string) *sql.DB {
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
 
-	var err error
-	DB, err = sql.Open("postgres", dsn)
+	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		log.Fatalf("Failed to open DB connection: %v", err)
 	}
 
-	if err = DB.Ping(); err != nil {
+	if err = db.Ping(); err != nil {
 		log.Fatalf("Failed to ping DB: %v", err)
 	}
 
 	log.Println("Database connected successfully")
 
-	return DB
+	return db
 }
 
 func Migertions(db *sql.DB) {
