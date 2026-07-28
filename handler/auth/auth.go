@@ -9,3 +9,4 @@ type AuthHandler interface {
 	Login(ctx *gin.Context)
 
 }
+

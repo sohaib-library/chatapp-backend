@@ -14,6 +14,7 @@ type ConversationRepo interface {
 	CreateGroupConversation(ctx context.Context, name string, memberIDs []string) (*models.Conversation, error)
 	ListGroupConversations(ctx context.Context, userID string) ([]models.Conversation, error)
 	IsMember(ctx context.Context, conversationID, userID string) (bool, error)
+	ListMemberIDs(ctx context.Context, conversationID string) ([]string, error)
 	CreateMessage(ctx context.Context, conversationID, senderID, content string) (*models.Message, error)
 	ListMessages(ctx context.Context, conversationID string) ([]models.Message, error)
 }

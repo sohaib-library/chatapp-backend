@@ -1,11 +1,10 @@
 package main
 
 import (
-	
 	"chatapp-backend/database"
 	"chatapp-backend/route"
-	"github.com/gin-gonic/gin"
 
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -15,6 +14,17 @@ func main() {
 	database.Migertions(DB)
 
 	router := gin.Default()
+
+	router.Use(func(c *gin.Context) {
+		c.Header("Access-Control-Allow-Origin", "*")
+		c.Header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		c.Header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+		c.Next()
+	})
 
 	route.RegisterRoute(router, DB)
 

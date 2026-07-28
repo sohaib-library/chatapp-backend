@@ -21,5 +21,17 @@ func (s *ConversationServiceImpl) SendMessage(ctx context.Context, currentUserID
 		return nil, apperror.ErrNotConversationMember
 	}
 
-	return s.repo.CreateMessage(ctx, conversationID, currentUserID, content)
+	message, err := s.repo.CreateMessage(ctx, conversationID, currentUserID, content)
+	if err != nil {
+		return nil, err
+	}
+
+	if s.notifier != nil {
+		memberIDs, memberErr := s.repo.ListMemberIDs(ctx, conversationID)
+		if memberErr == nil {
+			s.notifier.NotifyMessage(conversationID, memberIDs, message)
+		}
+	}
+
+	return message, nil
 }

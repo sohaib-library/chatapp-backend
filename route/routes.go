@@ -13,13 +13,16 @@ import (
 	auth_service "chatapp-backend/service/auth/auth_impl"
 	conversation_service "chatapp-backend/service/conversation/conversation_impl"
 	user_service "chatapp-backend/service/user/user_impl"
+	"chatapp-backend/ws"
 
 	"github.com/gin-gonic/gin"
 )
 
 func RegisterRoute(router *gin.Engine, db *sql.DB) {
- 
-	// Auth Wiring
+
+	hub := ws.NewHub()
+	go hub.Run()
+
 	authRepo := auth_repo.NewAuthImpl(db)
 	authSvc := auth_service.NewAuth(authRepo)
 	authHandler := auth_handler.NewHandler(authSvc)
@@ -33,7 +36,7 @@ func RegisterRoute(router *gin.Engine, db *sql.DB) {
 	// Conversation Wiring
 
 	conversationRepo := conversation_repo.NewConversationImpl(db)
-	conversationSvc := conversation_service.NewConversation(conversationRepo)
+	conversationSvc := conversation_service.NewConversation(conversationRepo, hub)
 	conversationHandler := conversation_handler.NewHandler(conversationSvc)
 
 	// Auth Routes
@@ -41,9 +44,9 @@ func RegisterRoute(router *gin.Engine, db *sql.DB) {
 	router.POST("/signup", authHandler.SignUp)
 	router.POST("/login", authHandler.Login)
 
-	
+	router.GET("/ws", ws.ServeWS(hub))
 
-	// Routes	
+	// Routes
 
 	protected := router.Group("/")
 	protected.Use(middleware.AuthenticationMiddleware)

@@ -6,9 +6,16 @@ import (
 )
 
 type ConversationServiceImpl struct {
-	repo conversation.ConversationRepo
+	repo     conversation.ConversationRepo
+	notifier conversationService.RealtimeNotifier
 }
 
-func NewConversation(repo conversation.ConversationRepo) conversationService.ConversationService {
-	return &ConversationServiceImpl{repo: repo}
+func NewConversation(
+	repo conversation.ConversationRepo,
+	notifier conversationService.RealtimeNotifier,
+) conversationService.ConversationService {
+	return &ConversationServiceImpl{
+		repo:     repo,
+		notifier: notifier,
+	}
 }
