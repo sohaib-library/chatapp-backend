@@ -5,6 +5,8 @@ import (
 	userService "chatapp-backend/service/user"
 )
 
+var _ userService.UserService = (*UserServiceImpl)(nil)
+
 type UserServiceImpl struct {
 	repo user.UserRepo
 }

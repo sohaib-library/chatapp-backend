@@ -1,6 +1,11 @@
 package auth_impl
 
-import authService "chatapp-backend/service/auth"
+import (
+	authHandler "chatapp-backend/handler/auth"
+	authService "chatapp-backend/service/auth"
+)
+
+var _ authHandler.AuthHandler = (*Handler)(nil)
 
 type Handler struct {
 	Authuser authService.AuthService

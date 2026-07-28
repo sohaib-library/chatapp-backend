@@ -6,6 +6,8 @@ import (
 	"chatapp-backend/repo/auth"
 )
 
+var _ auth.AuthRepo = (*AuthImpl)(nil)
+
 type AuthImpl struct {
 	db *sql.DB
 }

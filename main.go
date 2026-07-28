@@ -11,7 +11,7 @@ func main() {
 	DB := database.Database(".env")
 	defer DB.Close()
 
-	database.Migertions(DB)
+	database.Migrations(DB)
 
 	router := gin.Default()
 

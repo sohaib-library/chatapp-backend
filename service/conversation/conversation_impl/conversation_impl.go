@@ -5,6 +5,8 @@ import (
 	conversationService "chatapp-backend/service/conversation"
 )
 
+var _ conversationService.ConversationService = (*ConversationServiceImpl)(nil)
+
 type ConversationServiceImpl struct {
 	repo     conversation.ConversationRepo
 	notifier conversationService.RealtimeNotifier

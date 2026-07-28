@@ -1,6 +1,11 @@
 package conversation_impl
 
-import conversationService "chatapp-backend/service/conversation"
+import (
+	conversationHandler "chatapp-backend/handler/conversation"
+	conversationService "chatapp-backend/service/conversation"
+)
+
+var _ conversationHandler.ConversationHandler = (*Handler)(nil)
 
 type Handler struct {
 	Conversation conversationService.ConversationService

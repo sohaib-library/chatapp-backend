@@ -43,7 +43,7 @@ func Database(envpath string) *sql.DB {
 	return db
 }
 
-func Migertions(db *sql.DB) {
+func Migrations(db *sql.DB) {
 	if err := RunMigrations(db); err != nil {
 		log.Fatal(err)
 	}

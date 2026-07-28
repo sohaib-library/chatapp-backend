@@ -6,6 +6,8 @@ import (
 	"chatapp-backend/repo/conversation"
 )
 
+var _ conversation.ConversationRepo = (*ConversationImpl)(nil)
+
 type ConversationImpl struct {
 	db *sql.DB
 }

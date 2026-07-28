@@ -6,6 +6,8 @@ import (
 	"chatapp-backend/repo/user"
 )
 
+var _ user.UserRepo = (*UserImpl)(nil)
+
 type UserImpl struct {
 	db *sql.DB
 }

@@ -1,6 +1,11 @@
 package user_impl
 
-import userService "chatapp-backend/service/user"
+import (
+	userHandler "chatapp-backend/handler/user"
+	userService "chatapp-backend/service/user"
+)
+
+var _ userHandler.UserHandler = (*Handler)(nil)
 
 type Handler struct {
 	User userService.UserService
