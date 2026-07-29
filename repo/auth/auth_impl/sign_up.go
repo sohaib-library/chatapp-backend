@@ -5,63 +5,30 @@ import (
 	"chatapp-backend/models"
 	"context"
 	"errors"
-	"fmt"
 
-	"github.com/lib/pq"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
-func ( r *AuthImpl ) CreateUser (ctx context.Context, user models.Users) error {
-
-
-	_, err := r.db.ExecContext (ctx, `
-
-		INSERT INTO users (
-		name,
-		email,
-		password )
-		VALUES 
-		($1,$2,$3)
-	`, 
-	user.Name,
-	user.Email, 
-	user.Password)
-
-
-	if err != nil {
-
-		var pqErr *pq.Error
-		if errors.As(err, &pqErr) && pqErr.Code == "23505" {
+func (r *AuthImpl) CreateUser(ctx context.Context, user models.Users) error {
+	result := r.db.WithContext(ctx).Create(&user)
+	if result.Error != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(result.Error, &pgErr) && pgErr.Code == "23505" {
 			return apperror.ErrUserExists
 		}
-
-		return fmt.Errorf("insert user: %w", err)
-
+		return result.Error
 	}
-
 	return nil
 }
 
-
 func (r *AuthImpl) UserExists(ctx context.Context, email string) (bool, error) {
-
-	var exists bool
-
-	err := r.db.QueryRowContext (ctx, `
-
-		SELECT EXISTS(
-			SELECT 1 FROM users 
-			WHERE
-			email = $1
-		)
-	`,
-	 email).
-
-	 Scan(&exists)
-	 
-	if err != nil {
-		return false, fmt.Errorf("check user exists: %w", err)
+	var count int64
+	result := r.db.WithContext(ctx).
+		Model(&models.Users{}).
+		Where("email = ?", email).
+		Count(&count)
+	if result.Error != nil {
+		return false, result.Error
 	}
-
-
-	return exists, nil
+	return count > 0, nil
 }

@@ -1,20 +1,18 @@
 package conversation_impl
 
 import (
+	"chatapp-backend/models"
 	"context"
-	"fmt"
 )
 
 func (r *ConversationImpl) IsMember(ctx context.Context, conversationID, userID string) (bool, error) {
-	var exists bool
-	err := r.db.QueryRowContext(ctx, `
-		SELECT EXISTS(
-			SELECT 1 FROM conversation_members
-			WHERE conversation_id = $1 AND user_id = $2
-		)
-	`, conversationID, userID).Scan(&exists)
-	if err != nil {
-		return false, fmt.Errorf("check conversation member: %w", err)
+	var count int64
+	result := r.db.WithContext(ctx).
+		Model(&models.ConversationMember{}).
+		Where("conversation_id = ? AND user_id = ?", conversationID, userID).
+		Count(&count)
+	if result.Error != nil {
+		return false, result.Error
 	}
-	return exists, nil
+	return count > 0, nil
 }

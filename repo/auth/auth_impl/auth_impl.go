@@ -1,17 +1,17 @@
 package auth_impl
 
 import (
-	"database/sql"
-
 	"chatapp-backend/repo/auth"
+
+	"gorm.io/gorm"
 )
 
 var _ auth.AuthRepo = (*AuthImpl)(nil)
 
 type AuthImpl struct {
-	db *sql.DB
+	db *gorm.DB
 }
 
-func NewAuthImpl(db *sql.DB) auth.AuthRepo {
+func NewAuthImpl(db *gorm.DB) auth.AuthRepo {
 	return &AuthImpl{db: db}
 }

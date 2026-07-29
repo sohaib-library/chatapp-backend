@@ -9,7 +9,6 @@ import (
 
 func main() {
 	DB := database.Database(".env")
-	defer DB.Close()
 
 	database.Migrations(DB)
 

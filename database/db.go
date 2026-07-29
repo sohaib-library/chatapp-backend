@@ -8,9 +8,12 @@ import (
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
-func Database(envpath string) *sql.DB {
+func Database(envpath string) *gorm.DB {
 
 	if err := godotenv.Load(envpath); err != nil {
 		log.Fatalf("Error loading .env file from %s: %v", envpath, err)
@@ -29,12 +32,19 @@ func Database(envpath string) *sql.DB {
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
 
-	db, err := sql.Open("postgres", dsn)
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
+	})
 	if err != nil {
 		log.Fatalf("Failed to open DB connection: %v", err)
 	}
 
-	if err = db.Ping(); err != nil {
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Fatalf("Failed to get underlying sql.DB: %v", err)
+	}
+
+	if err = sqlDB.Ping(); err != nil {
 		log.Fatalf("Failed to ping DB: %v", err)
 	}
 
@@ -43,8 +53,21 @@ func Database(envpath string) *sql.DB {
 	return db
 }
 
-func Migrations(db *sql.DB) {
-	if err := RunMigrations(db); err != nil {
+func Migrations(db *gorm.DB) {
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Fatalf("Failed to get sql.DB for migrations: %v", err)
+	}
+	if err := RunMigrations(sqlDB); err != nil {
 		log.Fatal(err)
 	}
+}
+
+// SQLDb returns the underlying *sql.DB from a *gorm.DB (used for migrations).
+func SQLDb(db *gorm.DB) *sql.DB {
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Fatalf("Failed to get underlying sql.DB: %v", err)
+	}
+	return sqlDB
 }

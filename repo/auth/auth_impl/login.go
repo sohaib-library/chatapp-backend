@@ -4,35 +4,23 @@ import (
 	apperror "chatapp-backend/error"
 	"chatapp-backend/models"
 	"context"
-	"database/sql"
 	"errors"
-	"fmt"
+
+	"gorm.io/gorm"
 )
 
 func (r *AuthImpl) Login(ctx context.Context, email string) (*models.Users, error) {
-
 	var user models.Users
 
-	err := r.db.QueryRowContext(ctx, `
+	result := r.db.WithContext(ctx).
+		Where("email = ?", email).
+		First(&user)
 
-		SELECT id,
-		name,
-		email,
-		password
-		FROM users
-		WHERE email = $1
-	`, email).Scan(
-		&user.Id,
-		&user.Name,
-		&user.Email,
-		&user.Password,
-	)
-
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, apperror.ErrUserNotFound
 		}
-		return nil, fmt.Errorf("get user by email: %w", err)
+		return nil, result.Error
 	}
 
 	return &user, nil

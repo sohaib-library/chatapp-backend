@@ -1,8 +1,6 @@
 package route
 
 import (
-	"database/sql"
-
 	auth_handler "chatapp-backend/handler/auth/auth_impl"
 	conversation_handler "chatapp-backend/handler/conversation/conversation_impl"
 	user_handler "chatapp-backend/handler/user/user_impl"
@@ -16,9 +14,10 @@ import (
 	"chatapp-backend/ws"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
-func RegisterRoute(router *gin.Engine, db *sql.DB) {
+func RegisterRoute(router *gin.Engine, db *gorm.DB) {
 
 	hub := ws.NewHub()
 	go hub.Run()
@@ -52,7 +51,7 @@ func RegisterRoute(router *gin.Engine, db *sql.DB) {
 	protected.Use(middleware.AuthenticationMiddleware)
 	{
 		// User Routes
-		
+
 		protected.GET("/users", userHandler.ListUsers)
 
 		// Conversation Routes
@@ -60,13 +59,11 @@ func RegisterRoute(router *gin.Engine, db *sql.DB) {
 		protected.POST("/dms", conversationHandler.StartDM)
 		protected.GET("/dms", conversationHandler.ListDMs)
 
-
-
 		protected.POST("/groups", conversationHandler.CreateGroup)
 		protected.GET("/groups", conversationHandler.ListGroups)
 
 		// Messages work for both DMs and groups (same conversation + membership check)
-		
+
 		protected.POST("/dms/:id/messages", conversationHandler.SendMessage)
 		protected.GET("/dms/:id/messages", conversationHandler.ListMessages)
 		protected.POST("/groups/:id/messages", conversationHandler.SendMessage)

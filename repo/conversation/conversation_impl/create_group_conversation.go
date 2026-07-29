@@ -4,43 +4,43 @@ import (
 	"chatapp-backend/models"
 	"context"
 	"fmt"
+
+	"gorm.io/gorm"
 )
 
 func (r *ConversationImpl) CreateGroupConversation(ctx context.Context, name string, memberIDs []string) (*models.Conversation, error) {
-	tx, err := r.db.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, fmt.Errorf("begin group conversation tx: %w", err)
-	}
-	defer tx.Rollback()
+	var conv models.ConversationDB
 
-	var conv models.Conversation
-	err = tx.QueryRowContext(ctx, `
-		INSERT INTO conversations (type, name)
-		VALUES ('group', $1)
-		RETURNING id, type, name, created_at
-	`, name).Scan(&conv.ID, &conv.Type, &conv.Name, &conv.CreatedAt)
-	if err != nil {
-		return nil, fmt.Errorf("create group conversation: %w", err)
-	}
-
-	for _, memberID := range memberIDs {
-		if _, err := tx.ExecContext(ctx, `
-			INSERT INTO conversation_members (conversation_id, user_id)
-			VALUES ($1, $2)
-		`, conv.ID, memberID); err != nil {
-			return nil, fmt.Errorf("add group member: %w", err)
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		conv = models.ConversationDB{Type: "group", Name: name}
+		if err := tx.Create(&conv).Error; err != nil {
+			return fmt.Errorf("create group conversation: %w", err)
 		}
-	}
 
-	if err := tx.Commit(); err != nil {
-		return nil, fmt.Errorf("commit group conversation: %w", err)
-	}
+		members := make([]models.ConversationMember, len(memberIDs))
+		for i, id := range memberIDs {
+			members[i] = models.ConversationMember{ConversationID: conv.ID, UserID: id}
+		}
+		if err := tx.Create(&members).Error; err != nil {
+			return fmt.Errorf("add group members: %w", err)
+		}
 
-	members, err := r.listConversationMembers(ctx, conv.ID)
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
-	conv.Members = members
 
-	return &conv, nil
+	memberInfos, err := r.listConversationMembers(context.WithoutCancel(ctx), conv.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.Conversation{
+		ID:        conv.ID,
+		Type:      conv.Type,
+		Name:      conv.Name,
+		CreatedAt: conv.CreatedAt,
+		Members:   memberInfos,
+	}, nil
 }

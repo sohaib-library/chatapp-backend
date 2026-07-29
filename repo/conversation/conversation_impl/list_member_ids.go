@@ -1,33 +1,26 @@
 package conversation_impl
 
 import (
+	"chatapp-backend/models"
 	"context"
 	"fmt"
 )
 
 func (r *ConversationImpl) ListMemberIDs(ctx context.Context, conversationID string) ([]string, error) {
-	rows, err := r.db.QueryContext(ctx, `
-		SELECT user_id
-		FROM conversation_members
-		WHERE conversation_id = $1
-	`, conversationID)
-	if err != nil {
-		return nil, fmt.Errorf("list member ids: %w", err)
-	}
-	defer rows.Close()
+	var members []models.ConversationMember
 
-	memberIDs := make([]string, 0)
-	for rows.Next() {
-		var memberID string
-		if err := rows.Scan(&memberID); err != nil {
-			return nil, fmt.Errorf("scan member id: %w", err)
-		}
-		memberIDs = append(memberIDs, memberID)
+	result := r.db.WithContext(ctx).
+		Where("conversation_id = ?", conversationID).
+		Find(&members)
+
+	if result.Error != nil {
+		return nil, fmt.Errorf("list member ids: %w", result.Error)
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("iterate member ids: %w", err)
+	ids := make([]string, 0, len(members))
+	for _, m := range members {
+		ids = append(ids, m.UserID)
 	}
 
-	return memberIDs, nil
+	return ids, nil
 }

@@ -1,17 +1,17 @@
 package conversation_impl
 
 import (
-	"database/sql"
-
 	"chatapp-backend/repo/conversation"
+
+	"gorm.io/gorm"
 )
 
 var _ conversation.ConversationRepo = (*ConversationImpl)(nil)
 
 type ConversationImpl struct {
-	db *sql.DB
+	db *gorm.DB
 }
 
-func NewConversationImpl(db *sql.DB) conversation.ConversationRepo {
+func NewConversationImpl(db *gorm.DB) conversation.ConversationRepo {
 	return &ConversationImpl{db: db}
 }

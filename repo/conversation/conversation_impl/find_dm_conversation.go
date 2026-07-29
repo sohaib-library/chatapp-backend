@@ -3,34 +3,31 @@ package conversation_impl
 import (
 	"chatapp-backend/models"
 	"context"
-	"database/sql"
 	"errors"
-	"fmt"
+
+	"gorm.io/gorm"
 )
 
 func (r *ConversationImpl) FindDMConversation(ctx context.Context, userA, userB string) (*models.Conversation, error) {
-	var conv models.Conversation
-	var name sql.NullString
+	var conv models.ConversationDB
 
-	err := r.db.QueryRowContext(ctx, `
-		SELECT c.id, c.type, c.name, c.created_at
-		FROM conversations c
-		JOIN conversation_members m1 ON m1.conversation_id = c.id AND m1.user_id = $1
-		JOIN conversation_members m2 ON m2.conversation_id = c.id AND m2.user_id = $2
-		WHERE c.type = 'dm'
-		LIMIT 1
-	`, userA, userB).Scan(&conv.ID, &conv.Type, &name, &conv.CreatedAt)
+	result := r.db.WithContext(ctx).
+		Joins("JOIN conversation_members m1 ON m1.conversation_id = conversations.id AND m1.user_id = ?", userA).
+		Joins("JOIN conversation_members m2 ON m2.conversation_id = conversations.id AND m2.user_id = ?", userB).
+		Where("conversations.type = ?", "dm").
+		First(&conv)
 
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("find dm conversation: %w", err)
+		return nil, result.Error
 	}
 
-	if name.Valid {
-		conv.Name = name.String
-	}
-
-	return &conv, nil
+	return &models.Conversation{
+		ID:        conv.ID,
+		Type:      conv.Type,
+		Name:      conv.Name,
+		CreatedAt: conv.CreatedAt,
+	}, nil
 }

@@ -1,17 +1,17 @@
 package user_impl
 
 import (
-	"database/sql"
-
 	"chatapp-backend/repo/user"
+
+	"gorm.io/gorm"
 )
 
 var _ user.UserRepo = (*UserImpl)(nil)
 
 type UserImpl struct {
-	db *sql.DB
+	db *gorm.DB
 }
 
-func NewUserImpl(db *sql.DB) user.UserRepo {
+func NewUserImpl(db *gorm.DB) user.UserRepo {
 	return &UserImpl{db: db}
 }

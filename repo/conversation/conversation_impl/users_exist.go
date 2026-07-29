@@ -1,10 +1,8 @@
 package conversation_impl
 
 import (
+	"chatapp-backend/models"
 	"context"
-	"fmt"
-
-	"github.com/lib/pq"
 )
 
 func (r *ConversationImpl) UsersExist(ctx context.Context, userIDs []string) (bool, error) {
@@ -12,15 +10,14 @@ func (r *ConversationImpl) UsersExist(ctx context.Context, userIDs []string) (bo
 		return false, nil
 	}
 
-	var count int
-	err := r.db.QueryRowContext(ctx, `
-		SELECT COUNT(*)
-		FROM users
-		WHERE id = ANY($1::uuid[])
-	`, pq.Array(userIDs)).Scan(&count)
-	if err != nil {
-		return false, fmt.Errorf("check users exist: %w", err)
+	var count int64
+	result := r.db.WithContext(ctx).
+		Model(&models.UserDB{}).
+		Where("id IN ?", userIDs).
+		Count(&count)
+	if result.Error != nil {
+		return false, result.Error
 	}
 
-	return count == len(userIDs), nil
+	return int(count) == len(userIDs), nil
 }

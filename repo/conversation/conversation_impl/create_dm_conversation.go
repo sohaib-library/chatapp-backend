@@ -4,36 +4,36 @@ import (
 	"chatapp-backend/models"
 	"context"
 	"fmt"
+
+	"gorm.io/gorm"
 )
 
 func (r *ConversationImpl) CreateDMConversation(ctx context.Context, userA, userB string) (*models.Conversation, error) {
-	tx, err := r.db.BeginTx(ctx, nil)
+	var conv models.ConversationDB
+
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		conv = models.ConversationDB{Type: "dm"}
+		if err := tx.Create(&conv).Error; err != nil {
+			return fmt.Errorf("create conversation: %w", err)
+		}
+
+		members := []models.ConversationMember{
+			{ConversationID: conv.ID, UserID: userA},
+			{ConversationID: conv.ID, UserID: userB},
+		}
+		if err := tx.Create(&members).Error; err != nil {
+			return fmt.Errorf("add conversation members: %w", err)
+		}
+
+		return nil
+	})
 	if err != nil {
-		return nil, fmt.Errorf("begin dm conversation tx: %w", err)
-	}
-	defer tx.Rollback()
-
-	var conv models.Conversation
-	err = tx.QueryRowContext(ctx, `
-		INSERT INTO conversations (type)
-		VALUES ('dm')
-		RETURNING id, type, created_at
-	`).Scan(&conv.ID, &conv.Type, &conv.CreatedAt)
-	if err != nil {
-		return nil, fmt.Errorf("create conversation: %w", err)
+		return nil, err
 	}
 
-	_, err = tx.ExecContext(ctx, `
-		INSERT INTO conversation_members (conversation_id, user_id)
-		VALUES ($1, $2), ($1, $3)
-	`, conv.ID, userA, userB)
-	if err != nil {
-		return nil, fmt.Errorf("add conversation members: %w", err)
-	}
-
-	if err := tx.Commit(); err != nil {
-		return nil, fmt.Errorf("commit dm conversation: %w", err)
-	}
-
-	return &conv, nil
+	return &models.Conversation{
+		ID:        conv.ID,
+		Type:      conv.Type,
+		CreatedAt: conv.CreatedAt,
+	}, nil
 }
