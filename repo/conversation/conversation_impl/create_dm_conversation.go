@@ -2,6 +2,7 @@ package conversation_impl
 
 import (
 	"chatapp-backend/models"
+	"chatapp-backend/utils"
 	"context"
 	"fmt"
 
@@ -12,7 +13,7 @@ func (r *ConversationImpl) CreateDMConversation(ctx context.Context, userA, user
 	var conv models.ConversationDB
 
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		conv = models.ConversationDB{Type: "dm"}
+		conv = models.ConversationDB{ID: utils.NewID(), Type: "dm"}
 		if err := tx.Create(&conv).Error; err != nil {
 			return fmt.Errorf("create conversation: %w", err)
 		}
@@ -31,9 +32,16 @@ func (r *ConversationImpl) CreateDMConversation(ctx context.Context, userA, user
 		return nil, err
 	}
 
+	// Fetch the other user so the caller gets name + id immediately.
+	otherUser, err := r.findUser(context.WithoutCancel(ctx), userB)
+	if err != nil {
+		return nil, err
+	}
+
 	return &models.Conversation{
 		ID:        conv.ID,
 		Type:      conv.Type,
 		CreatedAt: conv.CreatedAt,
+		OtherUser: otherUser,
 	}, nil
 }

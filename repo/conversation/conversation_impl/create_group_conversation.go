@@ -2,6 +2,7 @@ package conversation_impl
 
 import (
 	"chatapp-backend/models"
+	"chatapp-backend/utils"
 	"context"
 	"fmt"
 
@@ -12,7 +13,7 @@ func (r *ConversationImpl) CreateGroupConversation(ctx context.Context, name str
 	var conv models.ConversationDB
 
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		conv = models.ConversationDB{Type: "group", Name: name}
+		conv = models.ConversationDB{ID: utils.NewID(), Type: "group", Name: name}
 		if err := tx.Create(&conv).Error; err != nil {
 			return fmt.Errorf("create group conversation: %w", err)
 		}

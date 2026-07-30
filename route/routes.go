@@ -5,6 +5,7 @@ import (
 	conversation_handler "chatapp-backend/handler/conversation/conversation_impl"
 	user_handler "chatapp-backend/handler/user/user_impl"
 	"chatapp-backend/middleware"
+	"chatapp-backend/mqtt"
 	auth_repo "chatapp-backend/repo/auth/auth_impl"
 	conversation_repo "chatapp-backend/repo/conversation/conversation_impl"
 	user_repo "chatapp-backend/repo/user/user_impl"
@@ -19,6 +20,11 @@ import (
 
 func RegisterRoute(router *gin.Engine, db *gorm.DB) {
 
+	// MQTT notifier — publishes messages to EMQX for real-time delivery.
+	mqttClient := mqtt.NewClient()
+	notifier := mqtt.NewMQTTNotifier(mqttClient)
+
+	// WebSocket hub — kept for browser clients that connect via /ws.
 	hub := ws.NewHub()
 	go hub.Run()
 
@@ -32,10 +38,10 @@ func RegisterRoute(router *gin.Engine, db *gorm.DB) {
 	userSvc := user_service.NewUser(userRepo)
 	userHandler := user_handler.NewHandler(userSvc)
 
-	// Conversation Wiring
+	// Conversation Wiring — uses MQTT notifier for real-time message events.
 
 	conversationRepo := conversation_repo.NewConversationImpl(db)
-	conversationSvc := conversation_service.NewConversation(conversationRepo, hub)
+	conversationSvc := conversation_service.NewConversation(conversationRepo, notifier)
 	conversationHandler := conversation_handler.NewHandler(conversationSvc)
 
 	// Auth Routes
@@ -43,6 +49,7 @@ func RegisterRoute(router *gin.Engine, db *gorm.DB) {
 	router.POST("/signup", authHandler.SignUp)
 	router.POST("/login", authHandler.Login)
 
+	// WebSocket endpoint (browser clients can still connect here)
 	router.GET("/ws", ws.ServeWS(hub))
 
 	// Routes

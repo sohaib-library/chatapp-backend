@@ -42,6 +42,7 @@ func (s *AuthServiceImpl) SignUp(ctx context.Context, user models.Users) error {
 		return fmt.Errorf("hash password: %w", err)
 	}
 	user.Password = hashedPassword
+	user.Id = utils.NewID()
 
 	if err := s.repo.CreateUser(ctx, user); err != nil {
 		if errors.Is(err, apperror.ErrUserExists) {
