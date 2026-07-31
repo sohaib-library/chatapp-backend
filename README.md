@@ -300,11 +300,16 @@ Event types received over WebSocket:
 ## Makefile Commands
 
 ```bash
-make run              # Start the server
+make run              # Start the server locally
 make migrate-up       # Apply all pending migrations
 make migrate-down     # Roll back the last migration
 make migrate-status   # Show migration status
 make create-migration name=your_migration_name  # Create a new migration file
+
+# Docker
+make docker-up        # Build and start all services (Postgres + EMQX + API)
+make docker-down      # Stop and remove all containers
+make docker-logs      # Tail API logs
 ```
 
 ---

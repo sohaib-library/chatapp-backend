@@ -1,0 +1,6 @@
+.git
+.env
+*.md
+chatapp-backend
+docker-compose.yml
+.dockerignore
