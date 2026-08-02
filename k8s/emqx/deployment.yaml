@@ -21,9 +21,9 @@ spec:
             - containerPort: 8083    # MQTT over WebSocket
             - containerPort: 18083   # Dashboard
           readinessProbe:
-            exec:
-              command: ["/opt/emqx/bin/emqx", "ping"]
-            initialDelaySeconds: 15
+            tcpSocket:
+              port: 1883          # Just check the MQTT port is open
+            initialDelaySeconds: 20
             periodSeconds: 10
           volumeMounts:
             - name: emqx-storage
