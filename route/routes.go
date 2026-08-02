@@ -44,6 +44,11 @@ func RegisterRoute(router *gin.Engine, db *gorm.DB) {
 	conversationSvc := conversation_service.NewConversation(conversationRepo, notifier)
 	conversationHandler := conversation_handler.NewHandler(conversationSvc)
 
+	// Health check — used by K8s readiness/liveness probes
+	router.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{"status": "ok"})
+	})
+
 	// Auth Routes
 
 	router.POST("/signup", authHandler.SignUp)

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: chatapp-config
+  namespace: chatapp
+data:
+  SERVER_PORT: "8000"
+  POSTGRES_HOST: "postgres"          # K8s service name — resolves inside the cluster
+  POSTGRES_PORT: "5432"
+  POSTGRES_SSLMODE: "disable"
+  MQTT_BROKER: "tcp://emqx:1883"     # K8s service name — resolves inside the cluster

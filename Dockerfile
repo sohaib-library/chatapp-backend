@@ -1,8 +1,12 @@
 # ── Stage 1: Build ───────────────────────────────────────────────────────────
-FROM golang:1.24-alpine AS builder
+FROM golang:1.23-alpine AS builder
 
 # Install build tools
 RUN apk add --no-cache git
+
+# GOTOOLCHAIN=auto lets Go automatically download the correct toolchain
+# version declared in go.mod (1.25.7) even though the base image has 1.23
+ENV GOTOOLCHAIN=auto
 
 WORKDIR /app
 

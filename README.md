@@ -15,6 +15,8 @@ A real-time chat REST API built with **Go**, **PostgreSQL**, **EMQX (MQTT)**, an
 | Auth | JWT (HS256) |
 | Real-time | EMQX (MQTT) + WebSocket |
 | IDs | Short nanoid (12 chars) |
+| Containerization | Docker + Docker Compose |
+| Orchestration | Kubernetes via k3d (K8s inside Docker) |
 
 ---
 
@@ -28,6 +30,12 @@ chatapp-backend/
 │   ├── auth/
 │   ├── conversation/
 │   └── user/
+├── k8s/                # Kubernetes manifests
+│   ├── namespace.yaml
+│   ├── secret.yaml
+│   ├── api/
+│   ├── emqx/
+│   └── postgres/
 ├── middleware/         # JWT auth middleware
 ├── models/             # Shared data models (DB + API)
 ├── mqtt/               # EMQX client + message notifier
@@ -43,6 +51,8 @@ chatapp-backend/
 ├── utils/              # JWT helpers, password hashing, ID generation
 ├── ws/                 # WebSocket hub + client
 ├── main.go
+├── Dockerfile
+├── docker-compose.yml
 └── Makefile
 ```
 
@@ -50,24 +60,21 @@ chatapp-backend/
 
 ## Prerequisites
 
-- Go 1.21+
-- PostgreSQL
-- [Goose](https://github.com/pressly/goose) — `go install github.com/pressly/goose/v3/cmd/goose@latest`
-- EMQX broker — easiest via Docker:
+Choose one of the three ways to run the project below. Each has different prerequisites.
 
-```bash
-docker run -d --name emqx \
-  -p 1883:1883 \
-  -p 8083:8083 \
-  -p 18083:18083 \
-  emqx/emqx:latest
-```
+- **Local** — Go 1.21+, PostgreSQL, Goose, EMQX
+- **Docker** — Docker + Docker Compose
+- **Kubernetes** — Docker, k3d, kubectl
 
 ---
 
-## Setup
+## Running the Project
 
-**1. Clone and install dependencies**
+### Option A — Local Development (fastest for coding)
+
+Best when you're actively writing and testing code.
+
+**1. Install dependencies**
 
 ```bash
 git clone <repo-url>
@@ -75,47 +82,176 @@ cd chatapp-backend
 go mod download
 ```
 
-**2. Configure environment**
+**2. Install Goose**
 
-Copy the example and fill in your values:
+```bash
+go install github.com/pressly/goose/v3/cmd/goose@latest
+```
+
+**3. Start EMQX (needed for real-time)**
+
+```bash
+docker run -d --name emqx \
+  -p 1883:1883 -p 18083:18083 \
+  emqx/emqx:latest
+```
+
+**4. Configure environment**
 
 ```bash
 cp .env.example .env
+# Edit .env with your Postgres credentials
 ```
 
-```env
-SERVER_PORT=8000
-
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5432
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-POSTGRES_DB=chatapp
-POSTGRES_SSLMODE=disable
-
-JWT_SECRET=change-me
-
-# EMQX MQTT broker (anonymous by default — no username/password needed for local dev)
-MQTT_BROKER=tcp://localhost:1883
-MQTT_USERNAME=
-MQTT_PASSWORD=
-```
-
-**3. Run migrations**
+**5. Run migrations and start**
 
 ```bash
 make migrate-up
+make run
 ```
 
-**4. Start the server**
+Server: `http://localhost:8000`
+
+---
+
+### Option B — Docker Compose (everything in one command)
+
+Best when you want Postgres + EMQX + API all running together without K8s.
+
+**First time or after code changes:**
+```bash
+make docker-up
+```
+
+**Already running, no code changes:**
+```bash
+docker compose up -d
+```
+
+**Stop:**
+```bash
+make docker-down
+```
+
+**View logs:**
+```bash
+make docker-logs
+```
+
+| Service | URL |
+|---------|-----|
+| API | `http://localhost:8000` |
+| EMQX Dashboard | `http://localhost:18083` |
+| MQTT | `localhost:1883` |
+
+---
+
+### Option C — Kubernetes with k3d (production-like setup)
+
+Best when you want to test the full deployment stack locally.
+
+#### One-time setup
+
+**1. Install k3d**
+```bash
+curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+```
+
+**2. Install kubectl**
+```bash
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+```
+
+**3. Create cluster, build image, deploy**
+```bash
+make k8s-cluster   # creates K8s cluster inside Docker
+make k8s-load      # builds image + imports into cluster
+make k8s-deploy    # deploys Postgres + EMQX + API
+```
+
+**4. Verify everything is running**
+```bash
+make k8s-status
+# All pods should show STATUS = Running
+```
+
+| Service | URL |
+|---------|-----|
+| API | `http://localhost:8000` |
+| EMQX Dashboard | `http://localhost:30083` |
+| MQTT | `localhost:1883` |
+
+---
+
+#### Every day workflow (K8s)
 
 ```bash
-make run
-# or
-go run main.go
+# Morning — start the cluster after PC restart
+k3d cluster start chatapp
+
+# Check pods came back up
+make k8s-status
+
+# Evening — stop to free RAM
+k3d cluster stop chatapp
 ```
 
-Server starts on `http://localhost:8000`
+#### After changing code (K8s)
+
+```bash
+make k8s-load
+# Rebuilds image + imports into cluster + restarts API pods automatically
+```
+
+#### Full reset (K8s)
+
+```bash
+make k8s-down      # delete cluster completely
+make k8s-cluster   # recreate
+make k8s-load
+make k8s-deploy
+```
+
+---
+
+## Quick Reference
+
+| Situation | Command |
+|-----------|---------|
+| Run locally | `make run` |
+| Start with Docker | `make docker-up` |
+| Stop Docker | `make docker-down` |
+| Create K8s cluster (once) | `make k8s-cluster` |
+| First deploy to K8s (once) | `make k8s-load && make k8s-deploy` |
+| Start K8s after PC restart | `k3d cluster start chatapp` |
+| Push code changes to K8s | `make k8s-load` |
+| Check pod status | `make k8s-status` |
+| View API logs (K8s) | `make k8s-logs` |
+| Stop K8s for the day | `k3d cluster stop chatapp` |
+| Full K8s wipe | `make k8s-down` |
+
+---
+
+## Environment Variables
+
+Copy `.env.example` to `.env` and fill in your values.
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SERVER_PORT` | `8000` | HTTP server port |
+| `POSTGRES_HOST` | `localhost` | Postgres host (`postgres` in Docker/K8s) |
+| `POSTGRES_PORT` | `5432` | Postgres port |
+| `POSTGRES_USER` | `postgres` | Postgres user |
+| `POSTGRES_PASSWORD` | — | Postgres password |
+| `POSTGRES_DB` | `chatapp` | Database name |
+| `POSTGRES_SSLMODE` | `disable` | SSL mode |
+| `JWT_SECRET` | — | Secret key for signing JWTs |
+| `MQTT_BROKER` | `tcp://localhost:1883` | EMQX broker (`tcp://emqx:1883` in Docker/K8s) |
+| `MQTT_USERNAME` | — | MQTT username (optional, leave empty for local) |
+| `MQTT_PASSWORD` | — | MQTT password (optional, leave empty for local) |
+
+> Docker Compose and K8s override `POSTGRES_HOST` and `MQTT_BROKER` automatically using their internal service names. Your `.env` stays unchanged for local dev.
 
 ---
 
@@ -149,7 +285,7 @@ Authorization: Bearer <token>
   "password": "secret123"
 }
 ```
-Response includes a `token` field — use this as your Bearer token.
+Response includes a `token` — use it as your Bearer token for all protected routes.
 
 ---
 
@@ -165,16 +301,17 @@ Response includes a `token` field — use this as your Bearer token.
 
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
-| POST | `/dms` | ✅ | Start a DM with another user |
+| POST | `/dms` | ✅ | Start a DM (or retrieve existing one) |
 | GET | `/dms` | ✅ | List all your DM conversations |
-| POST | `/dms/:id/messages` | ✅ | Send a message in a DM |
-| GET | `/dms/:id/messages` | ✅ | List messages in a DM |
+| POST | `/dms/:id/messages` | ✅ | Send a message |
+| GET | `/dms/:id/messages` | ✅ | List messages |
 
-**POST /dms** — start or retrieve existing DM
+**POST /dms**
 ```json
 { "user_id": "abc123xyz012" }
 ```
-Response includes `other_user` with the name and ID of the person you're chatting with:
+
+Response includes `other_user` so you immediately know who you're chatting with:
 ```json
 {
   "conversation": {
@@ -198,8 +335,8 @@ Response includes `other_user` with the name and ID of the person you're chattin
 |--------|----------|------|-------------|
 | POST | `/groups` | ✅ | Create a group conversation |
 | GET | `/groups` | ✅ | List all your group conversations |
-| POST | `/groups/:id/messages` | ✅ | Send a message in a group |
-| GET | `/groups/:id/messages` | ✅ | List messages in a group |
+| POST | `/groups/:id/messages` | ✅ | Send a message |
+| GET | `/groups/:id/messages` | ✅ | List messages |
 
 **POST /groups**
 ```json
@@ -211,9 +348,9 @@ Response includes `other_user` with the name and ID of the person you're chattin
 
 ---
 
-### Messages response shape
+### Message response shape
 
-Every message includes the sender's name — no extra lookup needed:
+Every message includes the sender's name — no extra lookup needed on the frontend:
 
 ```json
 {
@@ -230,30 +367,29 @@ Every message includes the sender's name — no extra lookup needed:
 
 ## Real-time with EMQX
 
-When a message is sent via the REST API, the backend **publishes it to EMQX** on topic:
+When a message is sent via the REST API, the backend publishes it to EMQX on:
 
 ```
 chat/conversation/{conversation_id}
 ```
 
-### Subscribe with MQTTX CLI
+### Test with MQTTX CLI
 
 ```bash
-# Install
 npm install -g mqttx-cli
 
 # Subscribe to all conversations
 mqttx sub -h localhost -p 1883 -t "chat/conversation/+" -v
 ```
 
-### Subscribe with MQTTX Desktop
+### Test with MQTTX Desktop
 
-1. Open MQTTX → New Connection
-2. Host: `localhost`, Port: `1883`
-3. Connect (no username/password needed for local EMQX)
-4. Add subscription: `chat/conversation/+`
+1. New Connection → Host `localhost`, Port `1883`
+2. Connect (no credentials needed for local EMQX)
+3. Subscribe to `chat/conversation/+`
+4. Send a message via the REST API — it appears instantly in MQTTX
 
-### MQTT message payload
+### MQTT payload
 
 ```json
 {
@@ -271,26 +407,23 @@ mqttx sub -h localhost -p 1883 -t "chat/conversation/+" -v
 
 ### EMQX Dashboard
 
-View connected clients, topics, and live messages at:
-```
-http://localhost:18083
-```
-Default credentials: `admin` / `public`
+| Mode | URL | Credentials |
+|------|-----|-------------|
+| Local / Docker | `http://localhost:18083` | `admin` / `public` |
+| Kubernetes | `http://localhost:30083` | `admin` / `public` |
 
 ---
 
 ## WebSocket
 
-Browser clients can connect to the WebSocket endpoint for presence and real-time events:
+Browser clients connect here for presence and real-time events:
 
 ```
 ws://localhost:8000/ws?token=<jwt>
 ```
 
-Event types received over WebSocket:
-
-| Type | Description |
-|------|-------------|
+| Event type | Description |
+|------------|-------------|
 | `message` | New message in a conversation |
 | `presence` | User came online or went offline |
 | `online_users` | List of currently online user IDs (sent on connect) |
@@ -300,32 +433,23 @@ Event types received over WebSocket:
 ## Makefile Commands
 
 ```bash
-make run              # Start the server locally
-make migrate-up       # Apply all pending migrations
-make migrate-down     # Roll back the last migration
-make migrate-status   # Show migration status
-make create-migration name=your_migration_name  # Create a new migration file
+# Local
+make run                                  # Start the server
+make migrate-up                           # Apply pending migrations
+make migrate-down                         # Roll back last migration
+make migrate-status                       # Show migration state
+make create-migration name=my_migration   # Create a new migration file
 
 # Docker
-make docker-up        # Build and start all services (Postgres + EMQX + API)
-make docker-down      # Stop and remove all containers
-make docker-logs      # Tail API logs
+make docker-up                            # Build + start all services
+make docker-down                          # Stop all services
+make docker-logs                          # Tail API logs
+
+# Kubernetes
+make k8s-cluster                          # Create k3d cluster
+make k8s-load                             # Build image + import + restart pods
+make k8s-deploy                           # Apply all K8s manifests
+make k8s-status                           # Show all pods and services
+make k8s-logs                             # Tail API pod logs
+make k8s-down                             # Delete the cluster
 ```
-
----
-
-## Environment Variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `SERVER_PORT` | `8000` | HTTP server port |
-| `POSTGRES_HOST` | `localhost` | Postgres host |
-| `POSTGRES_PORT` | `5432` | Postgres port |
-| `POSTGRES_USER` | `postgres` | Postgres user |
-| `POSTGRES_PASSWORD` | — | Postgres password |
-| `POSTGRES_DB` | `chatapp` | Database name |
-| `POSTGRES_SSLMODE` | `disable` | SSL mode |
-| `JWT_SECRET` | — | Secret key for signing JWTs |
-| `MQTT_BROKER` | `tcp://localhost:1883` | EMQX broker address |
-| `MQTT_USERNAME` | — | MQTT username (optional) |
-| `MQTT_PASSWORD` | — | MQTT password (optional) |

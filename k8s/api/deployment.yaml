@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chatapp-api
+  namespace: chatapp
+spec:
+  replicas: 2           # 2 API pods — K8s load balances between them automatically
+  selector:
+    matchLabels:
+      app: chatapp-api
+  template:
+    metadata:
+      labels:
+        app: chatapp-api
+    spec:
+      containers:
+        - name: chatapp-api
+          image: chatapp-backend:latest
+          imagePullPolicy: Never      # Use local image loaded via: k3d image import
+          ports:
+            - containerPort: 8000
+          # Non-secret config from ConfigMap
+          envFrom:
+            - configMapRef:
+                name: chatapp-config
+          # Secrets
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: chatapp-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: chatapp-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: chatapp-secret
+                  key: POSTGRES_DB
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: chatapp-secret
+                  key: JWT_SECRET
+            - name: MQTT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: chatapp-secret
+                  key: MQTT_USERNAME
+            - name: MQTT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: chatapp-secret
+                  key: MQTT_PASSWORD
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5

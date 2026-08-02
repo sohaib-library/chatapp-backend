@@ -16,7 +16,8 @@ import (
 func Database(envpath string) *gorm.DB {
 
 	if err := godotenv.Load(envpath); err != nil {
-		log.Fatalf("Error loading .env file from %s: %v", envpath, err)
+		// In production/K8s env vars are injected directly — .env file is optional.
+		log.Printf("Warning: .env file not found at %s, using system environment variables", envpath)
 	}
 
 	host := os.Getenv("POSTGRES_HOST")
