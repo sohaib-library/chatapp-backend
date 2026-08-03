@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -33,20 +34,28 @@ func Database(envpath string) *gorm.DB {
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
-	})
-	if err != nil {
-		log.Fatalf("Failed to open DB connection: %v", err)
+	// Retry loop — in K8s the API pod can start before Postgres is ready.
+	// Retry every 3 seconds for up to 30 seconds before giving up.
+	var db *gorm.DB
+	var err error
+	for i := 1; i <= 10; i++ {
+		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
+			Logger: logger.Default.LogMode(logger.Info),
+		})
+		if err == nil {
+			sqlDB, pingErr := db.DB()
+			if pingErr == nil {
+				if pingErr = sqlDB.Ping(); pingErr == nil {
+					break
+				}
+			}
+			err = pingErr
+		}
+		log.Printf("Waiting for database... attempt %d/10 (%v)", i, err)
+		time.Sleep(3 * time.Second)
 	}
-
-	sqlDB, err := db.DB()
 	if err != nil {
-		log.Fatalf("Failed to get underlying sql.DB: %v", err)
-	}
-
-	if err = sqlDB.Ping(); err != nil {
-		log.Fatalf("Failed to ping DB: %v", err)
+		log.Fatalf("Failed to connect to database after 10 attempts: %v", err)
 	}
 
 	log.Println("Database connected successfully")
