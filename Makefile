@@ -37,10 +37,15 @@ k8s-cluster:
 k8s-load:
 	docker build -t chatapp-backend:latest .
 	k3d image import chatapp-backend:latest -c chatapp
-	kubectl rollout restart deployment/chatapp-api -n chatapp
 
 k8s-deploy:
+	kubectl apply -f k8s/namespace.yaml
 	kubectl apply -R -f k8s/
+
+k8s-redeploy:
+	docker build -t chatapp-backend:latest .
+	k3d image import chatapp-backend:latest -c chatapp
+	kubectl rollout restart deployment/chatapp-api -n chatapp
 
 k8s-status:
 	kubectl get all -n chatapp
