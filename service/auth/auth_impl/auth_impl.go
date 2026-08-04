@@ -1,8 +1,8 @@
 package auth_impl
 
 import (
-	"chatapp-backend/repo/auth"
-	authService "chatapp-backend/service/auth"
+	"github.com/sohaib-library/chatapp-backend/repo/auth"
+	authService "github.com/sohaib-library/chatapp-backend/service/auth"
 )
 
 var _ authService.AuthService = (*AuthServiceImpl)(nil)

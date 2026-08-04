@@ -1,8 +1,9 @@
 package conversation_impl
 
 import (
-	"chatapp-backend/models"
 	"context"
+
+	"github.com/sohaib-library/chatapp-backend/models"
 )
 
 func (s *ConversationServiceImpl) ListGroups(ctx context.Context, currentUserID string) ([]models.Conversation, error) {

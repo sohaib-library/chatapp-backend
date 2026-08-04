@@ -1,8 +1,9 @@
 package user
 
 import (
-	"chatapp-backend/models"
 	"context"
+
+	"github.com/sohaib-library/chatapp-backend/models"
 )
 
 type UserRepo interface {

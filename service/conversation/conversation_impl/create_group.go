@@ -1,10 +1,11 @@
 package conversation_impl
 
 import (
-	apperror "chatapp-backend/error"
-	"chatapp-backend/models"
 	"context"
 	"strings"
+
+	apperror "github.com/sohaib-library/chatapp-backend/error"
+	"github.com/sohaib-library/chatapp-backend/models"
 )
 
 func (s *ConversationServiceImpl) CreateGroup(ctx context.Context, currentUserID, name string, memberIDs []string) (*models.Conversation, error) {

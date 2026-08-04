@@ -1,10 +1,11 @@
 package conversation_impl
 
 import (
-	apperror "chatapp-backend/error"
-	"chatapp-backend/models"
 	"context"
 	"strings"
+
+	apperror "github.com/sohaib-library/chatapp-backend/error"
+	"github.com/sohaib-library/chatapp-backend/models"
 )
 
 func (s *ConversationServiceImpl) SendMessage(ctx context.Context, currentUserID, conversationID, content string) (*models.Message, error) {

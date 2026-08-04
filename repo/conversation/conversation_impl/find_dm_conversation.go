@@ -1,9 +1,10 @@
 package conversation_impl
 
 import (
-	"chatapp-backend/models"
 	"context"
 	"errors"
+
+	"github.com/sohaib-library/chatapp-backend/models"
 
 	"gorm.io/gorm"
 )

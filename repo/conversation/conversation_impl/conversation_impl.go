@@ -1,7 +1,7 @@
 package conversation_impl
 
 import (
-	"chatapp-backend/repo/conversation"
+	"github.com/sohaib-library/chatapp-backend/repo/conversation"
 
 	"gorm.io/gorm"
 )

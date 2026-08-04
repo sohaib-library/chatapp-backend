@@ -1,9 +1,10 @@
 package auth_impl
 
 import (
-	"chatapp-backend/models"
 	"log"
 	"net/http"
+
+	"github.com/sohaib-library/chatapp-backend/models"
 
 	"github.com/gin-gonic/gin"
 )

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"sync"
 
-	"chatapp-backend/models"
+	"github.com/sohaib-library/chatapp-backend/models"
 )
 
 type Event struct {

@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"chatapp-backend/utils"
+	"github.com/sohaib-library/chatapp-backend/utils"
 
 	"github.com/gin-gonic/gin"
 )

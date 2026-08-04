@@ -1,9 +1,10 @@
 package conversation_impl
 
 import (
-	"chatapp-backend/models"
 	"context"
 	"fmt"
+
+	"github.com/sohaib-library/chatapp-backend/models"
 )
 
 // msgWithSender is a flat scan target for the JOIN query.

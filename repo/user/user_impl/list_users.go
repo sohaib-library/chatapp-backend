@@ -1,8 +1,9 @@
 package user_impl
 
 import (
-	"chatapp-backend/models"
 	"context"
+
+	"github.com/sohaib-library/chatapp-backend/models"
 )
 
 func (r *UserImpl) ListUsers(ctx context.Context, excludeUserID string) ([]models.UserInfo, error) {

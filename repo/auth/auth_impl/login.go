@@ -1,10 +1,11 @@
 package auth_impl
 
 import (
-	apperror "chatapp-backend/error"
-	"chatapp-backend/models"
 	"context"
 	"errors"
+
+	apperror "github.com/sohaib-library/chatapp-backend/error"
+	"github.com/sohaib-library/chatapp-backend/models"
 
 	"gorm.io/gorm"
 )

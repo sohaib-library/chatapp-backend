@@ -3,7 +3,7 @@ package ws
 import (
 	"net/http"
 
-	"chatapp-backend/utils"
+	"github.com/sohaib-library/chatapp-backend/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"

@@ -1,12 +1,13 @@
 package auth_impl
 
 import (
-	apperror "chatapp-backend/error"
-	"chatapp-backend/models"
-	"chatapp-backend/utils"
 	"context"
 	"errors"
 	"strings"
+
+	apperror "github.com/sohaib-library/chatapp-backend/error"
+	"github.com/sohaib-library/chatapp-backend/models"
+	"github.com/sohaib-library/chatapp-backend/utils"
 )
 
 func (s *AuthServiceImpl) Login(ctx context.Context, login models.Login) (string, error) {

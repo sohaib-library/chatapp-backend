@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	"chatapp-backend/models"
-	conversationService "chatapp-backend/service/conversation"
+	"github.com/sohaib-library/chatapp-backend/models"
+	conversationService "github.com/sohaib-library/chatapp-backend/service/conversation"
 
 	paho "github.com/eclipse/paho.mqtt.golang"
 )

@@ -1,7 +1,7 @@
 package auth_impl
 
 import (
-	"chatapp-backend/repo/auth"
+	"github.com/sohaib-library/chatapp-backend/repo/auth"
 
 	"gorm.io/gorm"
 )

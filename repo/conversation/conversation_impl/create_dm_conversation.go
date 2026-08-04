@@ -1,10 +1,11 @@
 package conversation_impl
 
 import (
-	"chatapp-backend/models"
-	"chatapp-backend/utils"
 	"context"
 	"fmt"
+
+	"github.com/sohaib-library/chatapp-backend/models"
+	"github.com/sohaib-library/chatapp-backend/utils"
 
 	"gorm.io/gorm"
 )

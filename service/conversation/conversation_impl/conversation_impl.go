@@ -1,8 +1,8 @@
 package conversation_impl
 
 import (
-	"chatapp-backend/repo/conversation"
-	conversationService "chatapp-backend/service/conversation"
+	"github.com/sohaib-library/chatapp-backend/repo/conversation"
+	conversationService "github.com/sohaib-library/chatapp-backend/service/conversation"
 )
 
 var _ conversationService.ConversationService = (*ConversationServiceImpl)(nil)

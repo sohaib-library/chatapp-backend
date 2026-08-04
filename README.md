@@ -23,7 +23,7 @@ A real-time chat REST API built with **Go**, **PostgreSQL**, **EMQX (MQTT)**, an
 ## Project Structure
 
 ```
-chatapp-backend/
+github.com/sohaib-library/chatapp-backend/
 ├── database/           # DB connection + Goose migrations
 ├── error/              # Centralized app error definitions
 ├── handler/            # HTTP layer (Gin handlers)

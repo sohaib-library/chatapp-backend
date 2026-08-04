@@ -3,8 +3,8 @@ package conversation_impl
 import (
 	"net/http"
 
-	"chatapp-backend/middleware"
-	"chatapp-backend/models"
+	"github.com/sohaib-library/chatapp-backend/middleware"
+	"github.com/sohaib-library/chatapp-backend/models"
 
 	"github.com/gin-gonic/gin"
 )

@@ -1,9 +1,10 @@
 package conversation_impl
 
 import (
-	apperror "chatapp-backend/error"
-	"chatapp-backend/models"
 	"context"
+
+	apperror "github.com/sohaib-library/chatapp-backend/error"
+	"github.com/sohaib-library/chatapp-backend/models"
 )
 
 func (s *ConversationServiceImpl) ListMessages(ctx context.Context, currentUserID, conversationID string) ([]models.Message, error) {

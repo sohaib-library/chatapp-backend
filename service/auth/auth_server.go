@@ -1,11 +1,10 @@
 package auth
 
 import (
-	
-	"chatapp-backend/models"
 	"context"
-)
 
+	"github.com/sohaib-library/chatapp-backend/models"
+)
 
 type AuthService interface {
 	SignUp(ctx context.Context, user models.Users) error

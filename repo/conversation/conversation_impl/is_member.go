@@ -1,8 +1,9 @@
 package conversation_impl
 
 import (
-	"chatapp-backend/models"
 	"context"
+
+	"github.com/sohaib-library/chatapp-backend/models"
 )
 
 func (r *ConversationImpl) IsMember(ctx context.Context, conversationID, userID string) (bool, error) {

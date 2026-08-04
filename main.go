@@ -1,8 +1,8 @@
 package main
 
 import (
-	"chatapp-backend/database"
-	"chatapp-backend/route"
+	"github.com/sohaib-library/chatapp-backend/database"
+	"github.com/sohaib-library/chatapp-backend/route"
 
 	"github.com/gin-gonic/gin"
 )

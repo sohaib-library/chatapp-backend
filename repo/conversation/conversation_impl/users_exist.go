@@ -1,8 +1,9 @@
 package conversation_impl
 
 import (
-	"chatapp-backend/models"
 	"context"
+
+	"github.com/sohaib-library/chatapp-backend/models"
 )
 
 func (r *ConversationImpl) UsersExist(ctx context.Context, userIDs []string) (bool, error) {

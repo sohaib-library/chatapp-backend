@@ -1,10 +1,11 @@
 package conversation_impl
 
 import (
-	"chatapp-backend/models"
-	"chatapp-backend/utils"
 	"context"
 	"fmt"
+
+	"github.com/sohaib-library/chatapp-backend/models"
+	"github.com/sohaib-library/chatapp-backend/utils"
 )
 
 func (r *ConversationImpl) CreateMessage(ctx context.Context, conversationID, senderID, content string) (*models.Message, error) {

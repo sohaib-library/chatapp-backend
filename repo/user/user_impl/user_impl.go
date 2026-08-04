@@ -1,7 +1,7 @@
 package user_impl
 
 import (
-	"chatapp-backend/repo/user"
+	"github.com/sohaib-library/chatapp-backend/repo/user"
 
 	"gorm.io/gorm"
 )

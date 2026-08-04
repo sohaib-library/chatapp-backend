@@ -1,8 +1,9 @@
 package conversation
 
 import (
-	"chatapp-backend/models"
 	"context"
+
+	"github.com/sohaib-library/chatapp-backend/models"
 )
 
 type ConversationRepo interface {

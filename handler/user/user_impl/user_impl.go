@@ -1,8 +1,8 @@
 package user_impl
 
 import (
-	userHandler "chatapp-backend/handler/user"
-	userService "chatapp-backend/service/user"
+	userHandler "github.com/sohaib-library/chatapp-backend/handler/user"
+	userService "github.com/sohaib-library/chatapp-backend/service/user"
 )
 
 var _ userHandler.UserHandler = (*Handler)(nil)

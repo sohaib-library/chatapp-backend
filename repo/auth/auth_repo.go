@@ -1,8 +1,9 @@
 package auth
 
 import (
-	"chatapp-backend/models"
 	"context"
+
+	"github.com/sohaib-library/chatapp-backend/models"
 )
 
 type AuthRepo interface {

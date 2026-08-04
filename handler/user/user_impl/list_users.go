@@ -3,7 +3,7 @@ package user_impl
 import (
 	"net/http"
 
-	"chatapp-backend/middleware"
+	"github.com/sohaib-library/chatapp-backend/middleware"
 
 	"github.com/gin-gonic/gin"
 )
