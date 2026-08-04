@@ -1,4 +1,4 @@
-module github.com/sohiab-library/chatapp-backend
+module github.com/sohaib-library/chatapp-backend
 
 go 1.25.7
 
