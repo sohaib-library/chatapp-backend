@@ -6,7 +6,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce   # Only one pod can write at a time (correct for a single DB pod)
-  # Uses default storage class (local-path for k3d, standard for Minikube)
+  # Uses default storage class (local-path for k3d)
   resources:
     requests:
       storage: 1Gi

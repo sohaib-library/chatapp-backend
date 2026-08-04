@@ -3,7 +3,7 @@ include .env
 DB_URL=postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable
 MIGRATION_DIR=./database/migration
 
-.PHONY: migrate-up migrate-down migrate-status create-migration run docker-up docker-down docker-logs
+.PHONY: migrate-up migrate-down migrate-status create-migration run docker-up docker-down docker-logs k8s-cluster k8s-load k8s-deploy k8s-redeploy k8s-status k8s-logs k8s-down
 
 migrate-up:
 	goose -dir $(MIGRATION_DIR) postgres "$(DB_URL)" up
@@ -55,38 +55,3 @@ k8s-logs:
 
 k8s-down:
 	k3d cluster delete chatapp
-
-# ── Kubernetes (Minikube) ─────────────────────────────────────────────────────
-
-minikube-start:
-	minikube start --driver=docker --cpus=4 --memory=4096 --ports=8000:30800,30083:30083
-
-minikube-load:
-	docker build -t chatapp-backend:latest .
-	minikube image load chatapp-backend:latest
-
-minikube-deploy:
-	minikube addons enable ingress
-	kubectl apply -f k8s/namespace.yaml
-	kubectl apply -R -f k8s/
-
-minikube-redeploy:
-	docker build -t chatapp-backend:latest .
-	minikube image load chatapp-backend:latest
-	kubectl rollout restart deployment/chatapp-api -n chatapp
-
-minikube-status:
-	kubectl get all -n chatapp
-
-minikube-logs:
-	kubectl logs -f deployment/chatapp-api -n chatapp
-
-minikube-tunnel:
-	@echo "Starting Minikube tunnel (requires sudo, keep running in separate terminal)"
-	minikube tunnel
-
-minikube-stop:
-	minikube stop
-
-minikube-delete:
-	minikube delete
