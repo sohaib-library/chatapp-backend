@@ -148,7 +148,7 @@ make docker-logs
 
 ### Option C — Kubernetes with k3d (production-like setup)
 
-Best when you want to test the full deployment stack locally.
+Best when you want to test the full deployment stack locally with Docker-based Kubernetes.
 
 #### One-time setup
 
@@ -178,6 +178,78 @@ make k8s-status
 
 | Service | URL |
 |---------|-----|
+| API | `http://localhost:8000` |
+| EMQX Dashboard | `http://localhost:30083` |
+| MQTT | `localhost:1883` |
+
+---
+
+### Option D — Kubernetes with Minikube (VM-based Kubernetes)
+
+Best when you prefer a VM-based Kubernetes environment or need more isolation.
+
+#### One-time setup
+
+**1. Install Minikube**
+```bash
+curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
+```
+
+**2. Install kubectl** (if not already installed)
+```bash
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+```
+
+**3. Start Minikube, build image, deploy**
+```bash
+make minikube-start   # starts Minikube cluster
+make minikube-load    # builds image + loads into Minikube
+make minikube-deploy  # deploys Postgres + EMQX + API
+```
+
+**4. Start Minikube tunnel** (in a separate terminal, keep it running)
+```bash
+make minikube-tunnel
+# Or manually: minikube tunnel
+# This allows you to access NodePort services on localhost
+```
+
+**5. Verify everything is running**
+```bash
+make minikube-status
+# All pods should show STATUS = Running and READY 1/1 or 2/2
+```
+
+| Service | URL (after tunnel is running) |
+|---------|-------------------------------|
+| API | `http://localhost:8000` |
+| EMQX Dashboard | `http://localhost:30083` |
+| MQTT | `localhost:1883` |
+
+---
+
+#### Daily workflow comparison
+
+**k3d:**
+```bash
+# Start: k3d cluster start chatapp
+# Stop: k3d cluster stop chatapp
+# After code changes: make k8s-redeploy
+```
+
+**Minikube:**
+```bash
+# Start: minikube start
+# Stop: minikube stop
+# After code changes: make minikube-redeploy
+# Access services: make minikube-tunnel (separate terminal)
+```
+
+---
+
+#### Every day workflow (k3d)
 | API | `http://localhost:8000` |
 | EMQX Dashboard | `http://localhost:30083` |
 | MQTT | `localhost:1883` |
@@ -222,14 +294,25 @@ make k8s-deploy
 | Run locally | `make run` |
 | Start with Docker | `make docker-up` |
 | Stop Docker | `make docker-down` |
-| Create K8s cluster (once) | `make k8s-cluster` |
-| First deploy to K8s (once) | `make k8s-load && make k8s-deploy` |
-| Start K8s after PC restart | `k3d cluster start chatapp` |
-| Push code changes to K8s | `make k8s-load` |
-| Check pod status | `make k8s-status` |
-| View API logs (K8s) | `make k8s-logs` |
-| Stop K8s for the day | `k3d cluster stop chatapp` |
-| Full K8s wipe | `make k8s-down` |
+| **k3d** | |
+| Create k3d cluster (once) | `make k8s-cluster` |
+| First deploy to k3d (once) | `make k8s-load && make k8s-deploy` |
+| Start k3d after PC restart | `k3d cluster start chatapp` |
+| Push code changes to k3d | `make k8s-redeploy` |
+| Check k3d pod status | `make k8s-status` |
+| View k3d API logs | `make k8s-logs` |
+| Stop k3d for the day | `k3d cluster stop chatapp` |
+| Full k3d wipe | `make k8s-down` |
+| **Minikube** | |
+| Start Minikube (first time) | `make minikube-start` |
+| Start Minikube (after stop) | `minikube start` |
+| First deploy to Minikube | `make minikube-load && make minikube-deploy` |
+| Enable access to services | `make minikube-tunnel` (separate terminal) |
+| Push code changes to Minikube | `make minikube-redeploy` |
+| Check Minikube pod status | `make minikube-status` |
+| View Minikube API logs | `make minikube-logs` |
+| Stop Minikube for the day | `minikube stop` |
+| Full Minikube wipe | `make minikube-delete` |
 
 ---
 
