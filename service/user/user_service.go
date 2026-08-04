@@ -8,4 +8,5 @@ import (
 
 type UserService interface {
 	ListUsers(ctx context.Context, currentUserID string) ([]models.UserInfo, error)
+	GetMe(ctx context.Context, userID string) (*models.UserInfo, error)
 }

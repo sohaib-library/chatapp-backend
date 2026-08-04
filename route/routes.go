@@ -65,6 +65,7 @@ func RegisterRoute(router *gin.Engine, db *gorm.DB) {
 		// User Routes
 
 		protected.GET("/users", userHandler.ListUsers)
+		protected.GET("/me", userHandler.GetMe)
 
 		// Conversation Routes
 

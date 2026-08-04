@@ -1,3 +1,4 @@
+
 package user
 
 import (
@@ -8,4 +9,5 @@ import (
 
 type UserRepo interface {
 	ListUsers(ctx context.Context, excludeUserID string) ([]models.UserInfo, error)
+	GetMe(ctx context.Context, userID string) (*models.UserInfo, error)
 }
