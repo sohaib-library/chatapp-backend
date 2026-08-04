@@ -66,6 +66,7 @@ minikube-load:
 	minikube image load chatapp-backend:latest
 
 minikube-deploy:
+	minikube addons enable ingress
 	kubectl apply -f k8s/namespace.yaml
 	kubectl apply -R -f k8s/
 

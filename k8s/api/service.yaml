@@ -9,5 +9,4 @@ spec:
   ports:
     - port: 8000
       targetPort: 8000
-      nodePort: 30800     # Access API at http://localhost:8000 (mapped by k3d --port flag)
-  type: NodePort
+  type: ClusterIP
