@@ -150,7 +150,7 @@ make docker-logs
 
 Best when you want to test the full deployment stack locally with Docker-based Kubernetes.
 
-#### One-time setup
+#### One-time setup (do this once)
 
 **1. Install k3d**
 ```bash
@@ -163,35 +163,48 @@ curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stabl
 sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 ```
 
-**3. Create cluster, build image, deploy**
+**3. Add hosts entry for ingress**
 ```bash
-make k8s-cluster   # creates K8s cluster inside Docker
-make k8s-load      # builds image + imports into cluster
-make k8s-deploy    # deploys Postgres + EMQX + API
+echo "127.0.0.1  chatapp.local" | sudo tee -a /etc/hosts
 ```
 
-**4. Verify everything is running**
+**4. Create cluster**
+```bash
+make k8s-cluster
+# Creates cluster with ports: 80 (ingress), 8000 (API NodePort), 30083 (EMQX dashboard)
+```
+
+**5. Install nginx ingress controller**
+```bash
+make k8s-ingress
+# Wait ~30 seconds for the controller pod to become ready
+kubectl get pods -n ingress-nginx   # wait until STATUS = Running
+```
+
+**6. Build image and deploy everything**
+```bash
+make k8s-load      # build image + import into cluster
+make k8s-deploy    # deploy Postgres + EMQX + API + Ingress
+```
+
+**7. Verify everything is running**
 ```bash
 make k8s-status
+kubectl get ingress -n chatapp
 # All pods should show STATUS = Running
+# Ingress should show ADDRESS assigned
 ```
 
 | Service | URL |
 |---------|-----|
-| API | `http://localhost:8000` |
+| API (via Ingress) | `http://chatapp.local` |
+| API (via NodePort) | `http://localhost:8000` |
 | EMQX Dashboard | `http://localhost:30083` |
 | MQTT | `localhost:1883` |
 
 ---
 
 #### Every day workflow (k3d)
-| API | `http://localhost:8000` |
-| EMQX Dashboard | `http://localhost:30083` |
-| MQTT | `localhost:1883` |
-
----
-
-#### Every day workflow (K8s)
 
 ```bash
 # Morning — start the cluster after PC restart
@@ -204,20 +217,21 @@ make k8s-status
 k3d cluster stop chatapp
 ```
 
-#### After changing code (K8s)
+#### After changing code (k3d)
 
 ```bash
-make k8s-load
+make k8s-redeploy
 # Rebuilds image + imports into cluster + restarts API pods automatically
 ```
 
-#### Full reset (K8s)
+#### Full reset (k3d)
 
 ```bash
 make k8s-down      # delete cluster completely
-make k8s-cluster   # recreate
-make k8s-load
-make k8s-deploy
+make k8s-cluster   # recreate (includes port 80 for ingress)
+make k8s-ingress   # reinstall nginx ingress controller
+make k8s-load      # build + import image
+make k8s-deploy    # deploy everything
 ```
 
 ---
@@ -231,6 +245,7 @@ make k8s-deploy
 | Stop Docker | `make docker-down` |
 | **k3d** | |
 | Create k3d cluster (once) | `make k8s-cluster` |
+| Install ingress controller (once) | `make k8s-ingress` |
 | First deploy to k3d (once) | `make k8s-load && make k8s-deploy` |
 | Start k3d after PC restart | `k3d cluster start chatapp` |
 | Push code changes to k3d | `make k8s-redeploy` |
@@ -454,10 +469,12 @@ make docker-up                            # Build + start all services
 make docker-down                          # Stop all services
 make docker-logs                          # Tail API logs
 
-# Kubernetes
-make k8s-cluster                          # Create k3d cluster
-make k8s-load                             # Build image + import + restart pods
+# Kubernetes (k3d)
+make k8s-cluster                          # Create k3d cluster (with ingress port 80)
+make k8s-ingress                          # Install nginx ingress controller
+make k8s-load                             # Build image + import into cluster
 make k8s-deploy                           # Apply all K8s manifests
+make k8s-redeploy                         # Rebuild + reimport + restart API pods
 make k8s-status                           # Show all pods and services
 make k8s-logs                             # Tail API pod logs
 make k8s-down                             # Delete the cluster

@@ -3,7 +3,7 @@ include .env
 DB_URL=postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable
 MIGRATION_DIR=./database/migration
 
-.PHONY: migrate-up migrate-down migrate-status create-migration run docker-up docker-down docker-logs k8s-cluster k8s-load k8s-deploy k8s-redeploy k8s-status k8s-logs k8s-down
+.PHONY: migrate-up migrate-down migrate-status create-migration run docker-up docker-down docker-logs k8s-cluster k8s-load k8s-deploy k8s-redeploy k8s-status k8s-logs k8s-down k8s-ingress
 
 migrate-up:
 	goose -dir $(MIGRATION_DIR) postgres "$(DB_URL)" up
@@ -32,7 +32,7 @@ docker-logs:
 # ── Kubernetes (k3d) ──────────────────────────────────────────────────────────
 
 k8s-cluster:
-	k3d cluster create chatapp --port "8000:30800@loadbalancer" --port "30083:30083@loadbalancer"
+	k3d cluster create chatapp --port "80:80@loadbalancer" --port "8000:30800@loadbalancer" --port "30083:30083@loadbalancer"
 
 k8s-load:
 	docker build -t chatapp-backend:latest .
@@ -55,3 +55,6 @@ k8s-logs:
 
 k8s-down:
 	k3d cluster delete chatapp
+
+k8s-ingress:
+	kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.10.0/deploy/static/provider/baremetal/deploy.yaml
