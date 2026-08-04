@@ -32,7 +32,7 @@ docker-logs:
 # ── Kubernetes (k3d) ──────────────────────────────────────────────────────────
 
 k8s-cluster:
-	k3d cluster create chatapp --port "80:80@loadbalancer" --port "8000:30800@loadbalancer" --port "30083:30083@loadbalancer"
+	k3d cluster create chatapp --port "80:80@loadbalancer" --port "8000:30800@loadbalancer" --port "30083:30083@loadbalancer" --port "1883:31403@loadbalancer"
 
 k8s-load:
 	docker build -t chatapp-backend:latest .
