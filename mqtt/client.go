@@ -1,6 +1,7 @@
 package mqtt
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -16,9 +17,17 @@ func NewClient() paho.Client {
 		broker = "tcp://localhost:1883"
 	}
 
+	// Use hostname (pod name in K8s) to ensure each replica gets a unique client ID.
+	// Falls back to "chatapp-backend" if hostname is unavailable.
+	hostname, err := os.Hostname()
+	if err != nil || hostname == "" {
+		hostname = "chatapp-backend"
+	}
+	clientID := fmt.Sprintf("chatapp-%s", hostname)
+
 	opts := paho.NewClientOptions().
 		AddBroker(broker).
-		SetClientID("chatapp-backend").
+		SetClientID(clientID).
 		SetCleanSession(true).
 		SetOnConnectHandler(func(_ paho.Client) {
 			log.Printf("[MQTT] connected to broker %s", broker)
